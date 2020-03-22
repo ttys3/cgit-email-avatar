@@ -45,6 +45,19 @@ func main() {
 		fmt.Printf(page)
 	}
 
+	// cleanup email, the email maybe `<foo@outlook.com>` format
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email[0] == '<' {
+		email = email[1:]
+	}
+	if email[len(email)-1] == '>' {
+		email = email[0:len(email)-1]
+	}
+
+	//fmt.Fprintf(os.Stderr, "got email: %s, page: %s\n", email, page)
+	//got email: foo@outlook.com, page: refs
+	//got email: foo@outlook.com, page: log
+
 	envServer := os.Getenv("CGIT_AVATAR_SERVER")
 	envServer = strings.TrimSpace(envServer)
 	if envServer != "" &&
@@ -59,8 +72,48 @@ func main() {
 	} else {
 		mailmd5 := md5hex(email)
 		text := strings.TrimSpace(string(input))
-		fmt.Fprintf(os.Stdout, `<img src='%s/%s?s=13&amp;d=retro' width='13' height='13' alt='Gravatar' /> %s`,
-			avatarServer, mailmd5, text)
+
+		/**
+		div#cgit span.libravatar img.onhover {
+		        display: none;
+		        border: 1px solid gray;
+		        padding: 0px;
+		        -webkit-border-radius: 4px;
+		        -moz-border-radius: 4px;
+		        border-radius: 4px;
+		        width: 128px;
+		        height: 128px;
+		}
+
+		div#cgit span.libravatar img.inline {
+		        -webkit-border-radius: 3px;
+		        -moz-border-radius: 3px;
+		        border-radius: 3px;
+		        width: 13px;
+		        height: 13px;
+		        margin-right: 0.2em;
+		        opacity: 0.6;
+		}
+
+		div#cgit span.libravatar:hover > img.onhover {
+		        display: block;
+		        position: absolute;
+		        margin-left: 1.5em;
+		        background-color: #eeeeee;
+		        box-shadow: 2px 2px 7px rgba(100,100,100,0.75);
+		}
+		<span class="libravatar">
+			<img class="inline" src="https://seccdn.libravatar.org/avatar/a8907e723e36cf8f37cd45636b1f0af4?s=13&amp;d=retro">
+			<img class="onhover" src="https://seccdn.libravatar.org/avatar/a8907e723e36cf8f37cd45636b1f0af4?s=128&amp;d=retro">
+		</span>
+		*/
+		fmt.Fprintf(os.Stdout, `<span class="libravatar">
+<img class="inline" src='%s/%s?s=13&amp;d=retro' alt='small avatar' />
+<img class="onhover" src='%s/%s?s=128&amp;d=retro' alt='large avatar' />
+</span> %s`,
+			avatarServer, mailmd5,
+			avatarServer, mailmd5,
+			text)
 	}
 }
 
